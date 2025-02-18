@@ -1,7 +1,6 @@
 ---
-prev: 
-  text: '第一模块'
-  link: '/first'
+prev: false
+sidebar: false
 ---
 # 第三模块
 
@@ -10,9 +9,10 @@ prev:
 恭喜你！作为实验的第三模块，也是实验的最后一个模块，你只需要完成一些选择或者填空题，和第一模块的方式一样，你需要完成一个小问卷。
 
 ::: info
-[小问卷](https://vitepress.dev/guide/markdown)
-
+[小问卷](https://www.credamo.com/s/ZbeUnaano/ )
 
 :::
-恭喜你！完成了全部的实验调查！
+
+### 恭喜你！完成了全部的实验调查！
+
 
