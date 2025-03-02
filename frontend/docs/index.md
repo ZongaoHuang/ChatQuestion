@@ -5,11 +5,11 @@ layout: home
 hero:
   name: "产品营销推广研究"
 
-  tagline: "您好，非常感谢您参与我们的实验！实验所收集的所有数据仅用于科学研究，我们将对您的所有信息进行严格保密，不会用作任何商业用途。请您使用电脑完成本实验。"
+  tagline: "
+  您好，非常感谢您参与我们的实验！实验所收集的所有数据仅用于科学研究，我们将对您的所有信息进行严格保密，不会用作任何商业用途。\n\n
+  请您使用电脑完成本实验!
+  "
   actions:
-    - theme: brand
-      text: 立即开始
-      link: /first
     - theme: alt
       text: 注意事项:请您按照模块顺序依次完成试验任务。
 
@@ -23,3 +23,7 @@ features:
     details: 创意任务完成后，请您完成一个小问卷。  
 ---
 
+<NavButton 
+  buttonText="立即开始"
+  align="center"
+/>

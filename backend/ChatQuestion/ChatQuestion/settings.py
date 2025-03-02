@@ -135,3 +135,9 @@ ARK_ENDPOINT_ID = 'ep-20250212145253-ds9js'  # 请替换为实际的接入点 ID
 
 # 如果使用 OpenAI SDK 方式调用，则还需配置 base_url
 ARK_BASE_URL = 'https://ark.cn-beijing.volces.com/api/v3'
+
+
+# Chat GPT 配置
+ARK_API_KEY1 = 'sk-6JPu7gavjS5l81o3GZffq8SdUbyzGW401tPGKw68i8C8ClFD'
+# 如果使用 OpenAI SDK 方式调用，则还需配置 base_url
+ARK_BASE_URL1 = 'https://api.chatanywhere.tech/v1'

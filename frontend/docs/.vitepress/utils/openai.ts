@@ -1,5 +1,11 @@
 import axios from 'axios';
 
+export interface ChatMessage {
+    content: string
+    isUser: boolean
+    timestamp: number
+}
+  
 const baseURL = 'http://127.0.0.1:8000/ChatGPT/';
 // 或者 const baseURL = 'http://localhost:8000';
 const axiosService = axios.create({ baseURL });
@@ -30,42 +36,87 @@ export const TITLE: string = `👨‍🎓Human:
 - 内容新颖性：创作的广告文案内容要突出产品上述特点与优势，能够吸引消费者购买。
 - 创意实用性：文案展示位置需适应抖音、小红书、微信朋友圈和微博这些社交平台的展示特点，在短时间内吸引用户注意力。`;
 
-export const generateChat = async (words: string, userID: string) => {
-    const url = '/chat/';
 
-    try {
-        // 发送聊天请求到后端，并传递用户ID和用户输入
-        const res = await axiosService({
-            method: 'post',
-            url,
-            data: { words, user_id: userID }  // 包含 user_id
-        });
 
-        // 如果后端返回了正确的响应
-        if (res && res.data && res.data.response) {
-            // 这里将用户输入和GPT的回答组合在一起
-            await saveChatHistory(userID, words, res.data.response);  // 保存聊天记录
-            return `${words} \n🤖ChatGPT: \n${res.data.response}\n\n👨‍🎓Human:`;
-        }
+  
+export const generateChat = async (message: string, userID: string): Promise<ChatMessage> => {
+const url = '/chat/';
 
-        return words;
-    } catch (error) {
-        console.error('Error generating chat:', error);
-        return words;
+try {
+    const res = await axiosService({
+    method: 'post',
+    url,
+    data: { 
+        words: message,
+        user_id: userID
     }
+    });
+
+    if (res?.data?.response) {
+    await saveChatHistory(userID, [{
+        content: message,
+        isUser: true,
+        timestamp: Date.now()
+    }, {
+        content: res.data.response,
+        isUser: false,
+        timestamp: Date.now()
+    }]);
+    
+    return {
+        content: res.data.response,
+        isUser: false,
+        timestamp: Date.now()
+    };
+    }
+
+    return {
+    content: '请求失败，请重试',
+    isUser: false,
+    timestamp: Date.now()
+    };
+} catch (error) {
+    console.error('Error generating chat:', error);
+    return {
+    content: '请求异常，请检查网络',
+    isUser: false,
+    timestamp: Date.now()
+    };
+}
 };
 
-// 将每次的聊天记录保存到后端
-export const saveChatHistory = async (userID: string, ChatInput: string, gptResponse: string) => {
-    try {
-        await axios.post('http://127.0.0.1:8000/ChatGPT/save_chat/', {
-            user_id: userID,
-            chat_input: ChatInput,
-            gpt_response: gptResponse
-        });
-    } catch (error) {
-        console.error('Error saving chat history:', error);
-    }
+export const saveChatHistory = async (userID: string, messages: ChatMessage[]) => {
+try {
+    await axios.post('http://127.0.0.1:8000/ChatGPT/save_chat/', {
+    user_id: userID,
+    messages: messages.map(msg => ({
+        content: msg.content,
+        is_user: msg.isUser,
+        timestamp: msg.timestamp
+    }))
+    });
+} catch (error) {
+    console.error('Error saving chat history:', error);
+}
+};
+
+// 新增获取聊天记录方法
+export const getChatHistory = async (userID: string): Promise<ChatMessage[]> => {
+try {
+    const response = await axios.get('http://127.0.0.1:8000/ChatGPT/get_chat_history/', {
+    params: { user_id: userID }
+    });
+    
+    return response.data.history.map((item: any) => ({
+    content: item.content,
+    isUser: item.is_user,
+    timestamp: item.timestamp * 1000 // 转换为毫秒
+    }));
+    
+} catch (error) {
+    console.error('Error fetching chat history:', error);
+    return [];
+}
 };
 
 export const sumitFirstStageReport = async (userID: string, userInput: string, timeSpent: number) => {

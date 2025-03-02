@@ -59,29 +59,73 @@ def chat_view(request):
     return JsonResponse({'response': answer})
 
 # 保存聊天记录
+# 修改保存聊天记录接口
 @csrf_exempt
 def save_chat(request):
     if request.method == "POST":
         try:
             data = json.loads(request.body)
             user_id = data.get("user_id")
-            chat_input = data.get("chat_input")
-            gpt_response = data.get("gpt_response")
+            messages = data.get("messages")
+            
+            if not user_id or not messages:
+                return JsonResponse({"error": "Missing required parameters"}, status=400)
 
-            if not user_id or not chat_input or not gpt_response:
-                return JsonResponse({"error": "缺少必填参数"}, status=400)
-
-            # 获取或创建用户
             user = User.objects.get(user_id=user_id)
-            # 创建聊天记录
-            ChatHistory.objects.create(user=user, chat_input=chat_input, gpt_response=gpt_response)
-
-            return JsonResponse({"message": "聊天记录保存成功"})
-        except User.DoesNotExist:
-            return JsonResponse({"error": "用户不存在"}, status=400)
+            
+            chat_records = []
+            for msg in messages:
+                # 用户消息只保存 chat_input
+                if msg.get("is_user"):
+                    chat_records.append(ChatHistory(
+                        user=user,
+                        chat_input=msg.get("content", ""),
+                        gpt_response="",  # 用户消息清空响应字段
+                        is_user=True
+                    ))
+                else:
+                    chat_records.append(ChatHistory(
+                        user=user,
+                        chat_input="",  # GPT消息清空输入字段
+                        gpt_response=msg.get("content", ""),
+                        is_user=False
+                    ))
+            
+            ChatHistory.objects.bulk_create(chat_records)
+            return JsonResponse({"message": "Chat history saved successfully"})
+            
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=500)
-    return JsonResponse({"error": "仅支持POST方法"}, status=405)
+        
+@csrf_exempt
+def get_chat_history(request):
+    if request.method == "GET":
+        try:
+            user_id = request.GET.get("user_id")
+            if not user_id:
+                return JsonResponse({"error": "缺少用户ID"}, status=400)
+                
+            user = User.objects.get(user_id=user_id)
+            history = ChatHistory.objects.filter(user=user).order_by('created_at')
+            
+            return JsonResponse({
+                "history": [
+                    {
+                        # 修正内容映射逻辑
+                        "content": record.gpt_response if not record.is_user else record.chat_input,
+                        "is_user": record.is_user,
+                        "timestamp": int(record.created_at.timestamp()),
+                        "response": record.gpt_response  # 保留原始字段
+                    }
+                    for record in history
+                    # 过滤占位符
+                    if (record.is_user and record.chat_input not in ["[USER_MESSAGE]", ""]) 
+                    or (not record.is_user and record.gpt_response not in ["[SYSTEM_QUERY]", ""])
+                ]
+            })
+            
+        except User.DoesNotExist:
+            return JsonResponse({"error": "用户不存在"}, status=404)
 
 # 保存报告
 @csrf_exempt

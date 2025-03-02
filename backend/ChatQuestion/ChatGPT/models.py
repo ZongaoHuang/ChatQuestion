@@ -12,12 +12,18 @@ class User(models.Model):
 
 class ChatHistory(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    chat_input = models.TextField()
-    gpt_response = models.TextField()
-    created_at = models.DateTimeField(default=timezone.now)  # 使用当前中国时间
+    chat_input = models.TextField(blank=True)
+    gpt_response = models.TextField(blank=True)
+    is_user = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
 
-    def __str__(self):
-        return f"Chat with {self.user.user_id} at {self.created_at}"
+    def save(self, *args, **kwargs):
+        # 自动清理无效数据
+        if self.is_user:
+            self.gpt_response = ""  # 用户消息清空响应字段
+        else:
+            self.chat_input = ""    # AI消息清空输入字段
+        super().save(*args, **kwargs)
 
 class Report(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)

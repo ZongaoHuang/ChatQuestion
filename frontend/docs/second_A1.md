@@ -1,6 +1,7 @@
 ---
 sidebar: false
 prev: false
+next: false
 ---
 
 <script setup>
@@ -22,33 +23,13 @@ const initializeUser = async () => {
     }
 };
 
-// 禁止页面中的复制、粘贴和右键操作
-const disableCopyPaste = () => {
-    document.addEventListener('copy', (e) => {
-        e.preventDefault();
-        alert('复制操作已被禁用');
-    });
-    document.addEventListener('paste', (e) => {
-        e.preventDefault();
-        alert('粘贴操作已被禁用');
-    });
-    document.addEventListener('contextmenu', (e) => {
-        e.preventDefault();
-        alert('右键操作已被禁用');
-    });
-};
 
 onMounted(() => {
-    initializeUser();
-    disableCopyPaste();
+    initializeUser().then(() => {
+    // 确保用户ID设置完成后再初始化组件
+    isUserIDSet.value = true
+  })
 
-    // 确保 ChatGPT 组件中的内容允许复制粘贴
-    const chatGPTElement = document.querySelector('.chatgpt-container');
-    if (chatGPTElement) {
-        chatGPTElement.style.userSelect = 'text';
-        chatGPTElement.style.webkitUserSelect = 'text';
-        chatGPTElement.style.mozUserSelect = 'text';
-    }
 });
 </script>
 # 第二模块限时任务
@@ -78,21 +59,17 @@ onMounted(() => {
 - 创意实用性：文案展示位置需适应抖音、小红书、微信朋友圈和微博这些社交平台的展示特点，在短时间内吸引用户注意力。
 ![Alt text](image.png)
 根据以上信息，请您按照以下要求完成该任务。**任务的整体完成时间为20分钟，分为“创意产生”和“创意细化”两个阶段完成。**
+::: danger
+请注意：在这一过程中请不要使用任何其他搜索引擎和生成式AI等工具。
+:::
 ## 创意部分
-
-<div class="chatgpt-container">
-  <Suspense >
-      <ChatGPT :userID="userID"  />
-  </Suspense>
+接下来请开始你的创意!
+<div v-if="isUserIDSet">
+<Suspense >
+    <ChatGPT :userID="userID"  />
+</Suspense>
+</div>
+<div v-else class="loading">
+正在初始化用户...
 </div>
 
-<style scoped>
-/* 禁止整个页面的复制、粘贴操作 */
-body {
-    user-select: none;  /* 禁止选择文本 */
-    -webkit-user-select: none;
-    -moz-user-select: none;
-}
-
-/* 其他页面元素的样式 */
-</style>
