@@ -4,7 +4,7 @@ import axios from 'axios';
 export const createUser = async (userID: string) => {
     try {
         // 请求后端创建用户
-        const response = await axios.post('http://127.0.0.1:8000/ChatGPT/create_user/', { user_id: userID });
+        const response = await axios.post('/api/ChatGPT/create_user/', { user_id: userID });
         return response.data; // 返回后端响应
     } catch (error) {
         console.error('Error creating user:', error);

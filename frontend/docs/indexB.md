@@ -1,6 +1,7 @@
 ---
 # https://vitepress.dev/reference/default-theme-home-page
 layout: home
+prev: false
 
 hero:
   name: "产品营销推广研究"
@@ -26,5 +27,5 @@ features:
 <NavButton 
   buttonText="立即开始"
   align="center"
-  to="/first_A"
+  to="/first_B"
 />

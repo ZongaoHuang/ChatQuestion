@@ -1,6 +1,6 @@
 <script lang="ts" setup >
 import { ref, defineProps, onMounted, onUnmounted} from 'vue';
-import { generateChat, DEFAULT_CHAT, TITLE, submitFirstStageReport_A, submitSecondStageReport_A, getChatHistory} from '../utils/openai.ts';
+import { generateChat, DEFAULT_CHAT, TITLE, submitFirstStageReport_B, submitSecondStageReport_B, getChatHistory} from '../utils/openai.ts';
 import { useRouter } from 'vitepress'
 import type { ChatMessage } from '../utils/openai.ts'; // 单独导入类型
 // 添加 messages 声明
@@ -20,7 +20,7 @@ const userInput1 = ref('');       // 用户第一阶段通过输入框输入的�
 const userInput2 = ref('');       // 用户第二阶段通过输入框输入的内容
 const loading = ref(false);
 const timerActive = ref(false);
-const stage = ref(1);            // 当前阶段，1是第一阶段，2是第二阶段
+const stage = ref(3);            // 当前阶段，3是系统B的第一阶段，4是系统B的第二阶段
 const timeLeft = ref(600);       // 10分钟，单位是秒
 const timer = ref(null);         // 用于计时器
 const isSubmitDisabled = ref(false); // 控制提交按钮是否禁用
@@ -33,14 +33,14 @@ const formatTime = (timeInSeconds) => {
 
 // 改进的阶段切换
 const nextStage = async () => {
-  if (stage.value !== 1) return;
+  if (stage.value !== 3) return;
   
   stopTimer();
   const timeSpent = 600 - timeLeft.value;
-  await submitFirstStageReport_A(props.userID, userInput1.value, timeSpent);
+  await submitFirstStageReport_B(props.userID, userInput1.value, timeSpent);
   
   // 原子化状态更新
-  stage.value = 2;
+  stage.value = 4;
   timeLeft.value = 600;
   
   startTimer();
@@ -50,7 +50,7 @@ const commit = async () => {
   if (window.confirm('点击确定后无法更改答案')) {
     clearInterval(timer.value); // 停止计时器
     const timeSpent = 600 - timeLeft.value; // 第二阶段已用时间
-    await submitSecondStageReport_A(props.userID, userInput2.value, timeSpent); // 保存第二阶段报告
+    await submitSecondStageReport_B(props.userID, userInput2.value, timeSpent); // 保存第二阶段报告
     alert('报告已提交');
     isSubmitDisabled.value = true; // 禁用提交按钮
     router.go('/third')
@@ -86,7 +86,7 @@ const startTimer = () => {
 // 统一超时处理
 const handleTimeout = () => {
   stopTimer();
-  if (stage.value === 1) {
+  if (stage.value === 3) {
     nextStage();
   } else {
     commit();
@@ -104,7 +104,7 @@ const stopTimer = () => {
 // 初始化时加载历史记录
 
 
-// 发送请求，与 ChatGPT 交互（仅适用于第一阶段）
+// 发送请求，与 ChatGPT 交互（仅适用于第二阶段）
 // 修改后的send方法
 const send = async () => {
   if (!chatInput.value.trim()) return;
@@ -164,9 +164,43 @@ onUnmounted(stopTimer);
     <div class="chat-container">
         <!-- 输入框部分 -->
 
-        <div v-if="stage === 1">
+        <div v-if="stage === 3">
+            <br></br>
+            <h2>创意产生</h2>
+            <div class="timer">
+              剩余时间: {{ Math.floor(timeLeft / 60) }}分{{ timeLeft % 60 }}秒
+            </div>
+            <br>
+            首先，请您先构思出若干条初步的创意点子。这一阶段的想法生成时间为10分钟，10分钟内，请将您的初步创意点子填写在下方文本框中。
+            
+            <strong>请注意：在这一过程中请不要使用任何搜索引擎和生成式AI等工具。</strong>
+            <textarea
+            :value="userInput1"
+            @input="input2"
+            placeholder="请输入消息..."
+            class="user-input"
+            ></textarea>
+
+            <div class="toolbar">
+                <span class="letters">{{ countNonWhitespaceChars(userInput1) }}</span>
+                <button @click="nextStage" class="next" v-if="stage === 3">进入创意细化阶段</button>
+            </div>  
+        </div>
+        
+        <br></br>
+        <!-- 计时器显示 -->
+        <div v-if="stage === 4">
+            <h2>创意产生</h2>
+            这是你在上一个10分钟内，进行初步创意的点子，你可以进行参照。
+            <textarea
+            :value="userInput1"
+            @input="input2"
+            placeholder="请输入消息..."
+            class="user-input"
+            ></textarea>
+            <br>
+
             <h2>ChatGPT</h2>
-            <!-- 聊天面板 -->
             <!-- 聊天面板 -->
             <div class="chat-panel">
               <div class="message-list">
@@ -191,47 +225,14 @@ onUnmounted(stopTimer);
                 <button @click="send">发送</button>
               </div>
             </div>
-            <br></br>
-            <h2>创意产生</h2>
-            <div class="timer">
-              剩余时间: {{ Math.floor(timeLeft / 60) }}分{{ timeLeft % 60 }}秒
-            </div>
-            <br>
-            首先，请您先构思出若干条初步的创意点子。这一阶段的想法生成时间为10分钟，请将您的初步创意点子写入到文本框中。
-            
-            <strong>在这一阶段您可以与本页面提供的 “ChatGPT” 工具进行互动以获得帮助。</strong>
-            <textarea
-            :value="userInput1"
-            @input="input2"
-            placeholder="请输入消息..."
-            class="user-input"
-            ></textarea>
 
-            <div class="toolbar">
-                <span class="letters">{{ countNonWhitespaceChars(userInput1) }}</span>
-                <button @click="nextStage" class="next" v-if="stage === 1">进入创意细化阶段</button>
-            </div>  
-        </div>
-        
-        <br></br>
-        <!-- 计时器显示 -->
-        <div v-if="stage === 2">
-            <h2>创意产生</h2>
-            这是你在上一个10分钟内，进行初步创意的点子，你可以进行参照。
-            <textarea
-            :value="userInput1"
-            @input="input2"
-            placeholder="请输入消息..."
-            class="user-input"
-            ></textarea>
-            <br>
             <h2>创意细化</h2>
             <div class="timer">
               剩余时间: {{ Math.floor(timeLeft / 60) }}分{{ timeLeft % 60 }}秒
             </div>
             <br>
-            在创意细化阶段，ChatGPT工具将会消失，请您对前一个阶段生成的初步创意和想法进行筛选、细化与完善。这一阶段的方案完善时间为10分钟，10分钟内，请将最终创意方案填写入到该文本框中。
-            <strong>请注意：在这一过程中请不要使用任何搜索引擎和生成式AI等工具。</strong>
+            接下来，请您对前一个阶段生成的初步创意和想法进行筛选、细化与完善。这一阶段的方案完善时间为10分钟，10分钟内，请将最终创意方案填写在下方文本框中。
+            <strong>请注意：在这一阶段您可以与本页面提供的“chatGPT”工具进行互动，以获得帮助。</strong>
             <textarea
             :value="userInput2"
             @input="input3"
@@ -241,7 +242,7 @@ onUnmounted(stopTimer);
 
             <div class="toolbar">
                 <span class="letters">{{ countNonWhitespaceChars(userInput2) }}</span>
-                <button @click="commit" class="commit" v-if="stage === 2" :disabled="isSubmitDisabled">提交</button>
+                <button @click="commit" class="commit" v-if="stage === 4" :disabled="isSubmitDisabled">提交</button>
             </div>
           </div>
 

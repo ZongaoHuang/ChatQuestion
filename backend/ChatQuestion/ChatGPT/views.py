@@ -148,7 +148,7 @@ def save_report(request):
 
             # 获取该用户的所有聊天记录
             chat_history_content = []
-            if stage == 1:  # 第一阶段，包含聊天记录
+            if stage == 1 or 4:  # 第一阶段，包含聊天记录
                 chat_history = ChatHistory.objects.filter(user=user).order_by('created_at')
                 chat_history_content = [
                     {
@@ -162,7 +162,7 @@ def save_report(request):
             # 获取当前中国时间
             current_time = timezone.localtime(timezone.now())  # 获取北京时间
             formatted_time = current_time.strftime("%Y-%m-%d %H:%M:%S")
-            if stage == 1: 
+            if stage == 1 or 4: 
             # 创建报告内容
                 report_data = {
                     "created_at": formatted_time,
@@ -192,12 +192,12 @@ def save_report(request):
                 json.dump(report_data, report_file, ensure_ascii=False, indent=4)
 
             # 创建报告链接
-            report_link = f"http://127.0.0.1:8000/reports/{report_filename}"
+            report_link = f"/reports/{report_filename}"
 
             # 更新用户模型中的报告链接字段
-            if stage == 1:
+            if stage == 1 or 3:
                 user.report_stage_1_link = report_link
-            elif stage == 2:
+            elif stage == 2 or 4:
                 user.report_stage_2_link = report_link
             user.save()
 

@@ -1,9 +1,38 @@
-
+---
+sidebar: false
+prev: false
+next: false
+---
 
 <script setup>
-import ChatGPT from '/.vitepress/components/ChatGPT.vue'
+import { onMounted, ref } from 'vue';
+import ChatGPT from '/.vitepress/components/ChatGPT_1.vue';
+import { promptUserID } from '/.vitepress/utils/inputID.ts';
+
+const userID = ref('');
+const isUserIDSet = ref(false);
+
+// 弹出框要求用户输入ID并创建用户
+const initializeUser = async () => {
+    try {
+        const id = await promptUserID(); // 弹出输入框，返回用户输入的ID
+        userID.value = id;
+        isUserIDSet.value = true;
+    } catch (error) {
+        alert('用户创建失败：' + error.message);
+    }
+};
+
+
+onMounted(() => {
+    initializeUser().then(() => {
+    // 确保用户ID设置完成后再初始化组件
+    isUserIDSet.value = true
+  })
+
+});
 </script>
-# 第二模块
+# 第二模块限时任务
 
 ## 任务描述
 
@@ -28,9 +57,17 @@ import ChatGPT from '/.vitepress/components/ChatGPT.vue'
 
 - 内容新颖性：创作的广告文案内容要突出产品上述特点与优势，能够吸引消费者购买。
 - 创意实用性：文案展示位置需适应抖音、小红书、微信朋友圈和微博这些社交平台的展示特点，在短时间内吸引用户注意力。
-
+![Alt text](image.png)
 根据以上信息，请您按照以下要求完成该任务。**任务的整体完成时间为20分钟，分为“创意产生”和“创意细化”两个阶段完成。**
-## ChatGPT
-<Suspense>
-    <ChatGPT />
+
+## 创意部分
+接下来请开始你的创意!
+<div v-if="isUserIDSet">
+<Suspense >
+    <ChatGPT :userID="userID"  />
 </Suspense>
+</div>
+<div v-else class="loading">
+正在初始化用户...
+</div>
+

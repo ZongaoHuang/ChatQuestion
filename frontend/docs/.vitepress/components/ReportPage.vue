@@ -40,7 +40,7 @@
   const fetchReports = async () => {
     try {
       loading.value = true
-      const response = await axios.get('http://127.0.0.1:8000/ChatGPT/report/')
+      const response = await axios.get('/api/ChatGPT/report/')
       reports.value = response.data.reports
     } catch (error) {
       console.error('获取报告失败:', error)
@@ -52,7 +52,7 @@
   // 下载全部
   const downloadAll = async () => {
     try {
-      const response = await axios.get('http://127.0.0.1:8000/ChatGPT/report/download-all/', {
+      const response = await axios.get('/api/ChatGPT/report/download-all/', {
         responseType: 'blob'
       })
       

@@ -6,9 +6,9 @@ export interface ChatMessage {
     timestamp: number
 }
   
-const baseURL = 'http://127.0.0.1:8000/ChatGPT/';
+// const baseURL = '/ChatGPT/'; // Removed baseURL to simplify, using relative paths directly
 // 或者 const baseURL = 'http://localhost:8000';
-const axiosService = axios.create({ baseURL });
+const axiosService = axios.create({ /* baseURL */ }); // baseURL removed from here
 
 export const DEFAULT_CHAT = '👨‍🎓Human:你叫什么名字？\n🤖ChatGPT:我叫ChatGPT，我是一个聊天机器人。\n👨‍🎓Human:';
 
@@ -40,7 +40,8 @@ export const TITLE: string = `👨‍🎓Human:
 
   
 export const generateChat = async (message: string, userID: string): Promise<ChatMessage> => {
-const url = '/chat/';
+// const url = '/api/ChatGPT/chat/';
+const url = '/api/ChatGPT/chat/'; // Corrected URL to be relative to proxy, and removed extra ChatGPT from path
 
 try {
     const res = await axiosService({
@@ -87,7 +88,7 @@ try {
 
 export const saveChatHistory = async (userID: string, messages: ChatMessage[]) => {
 try {
-    await axios.post('http://127.0.0.1:8000/ChatGPT/save_chat/', {
+    await axios.post('/api/ChatGPT/save_chat/', {
     user_id: userID,
     messages: messages.map(msg => ({
         content: msg.content,
@@ -103,7 +104,7 @@ try {
 // 新增获取聊天记录方法
 export const getChatHistory = async (userID: string): Promise<ChatMessage[]> => {
 try {
-    const response = await axios.get('http://127.0.0.1:8000/ChatGPT/get_chat_history/', {
+    const response = await axios.get('/api/ChatGPT/get_chat_history/', {
     params: { user_id: userID }
     });
     
@@ -118,8 +119,8 @@ try {
     return [];
 }
 };
-
-export const sumitFirstStageReport = async (userID: string, userInput: string, timeSpent: number) => {
+// 提交系统A的第一阶段报告
+export const submitFirstStageReport_A = async (userID: string, userInput: string, timeSpent: number) => {
     try {
         const reportData = {
             user_id: userID,
@@ -127,14 +128,14 @@ export const sumitFirstStageReport = async (userID: string, userInput: string, t
             user_input: userInput,
             time_spent: timeSpent // 假设10分钟，后续会更新为动态计算的时间
         };
-        await axios.post('http://127.0.0.1:8000/ChatGPT/save_report/', reportData);
+        await axios.post('/api/ChatGPT/save_report/', reportData);
     } catch (error) {
         console.error('Error saving report:', error);
     }
 };
 
-// 提交第二阶段报告
-export const submitSecondStageReport = async (userID: string, userInput: string, timeSpent: number) => {
+// 提交系统A的第二阶段报告
+export const submitSecondStageReport_A = async (userID: string, userInput: string, timeSpent: number) => {
     try {
         const reportData = {
             user_id: userID,
@@ -142,8 +143,40 @@ export const submitSecondStageReport = async (userID: string, userInput: string,
             user_input: userInput,
             time_spent: timeSpent // 假设10分钟，后续会更新为动态计算的时间
         };
-        await axios.post('http://127.0.0.1:8000/ChatGPT/save_report/', reportData);
+        await axios.post('/api/ChatGPT/save_report/', reportData);
     } catch (error) {
         console.error('Error submitting second stage report:', error);
+    }
+};
+
+
+
+// 提交系统B的第一阶段报告
+export const submitFirstStageReport_B = async (userID: string, userInput: string, timeSpent: number) => {
+    try {
+        const reportData = {
+            user_id: userID,
+            stage: 3,
+            user_input: userInput,
+            time_spent: timeSpent // 假设10分钟，后续会更新为动态计算的时间
+        };
+        await axios.post('/api/ChatGPT/save_report/', reportData);
+    } catch (error) {
+        console.error('Error submitting second stage report:', error);
+    }
+};
+
+// 提交系统B的第二阶段报告
+export const submitSecondStageReport_B = async (userID: string, userInput: string, timeSpent: number) => {
+    try {
+        const reportData = {
+            user_id: userID,
+            stage: 4,
+            user_input: userInput,
+            time_spent: timeSpent // 假设10分钟，后续会更新为动态计算的时间
+        };
+        await axios.post('/api/ChatGPT/save_report/', reportData);
+    } catch (error) {
+        console.error('Error saving report:', error);
     }
 };

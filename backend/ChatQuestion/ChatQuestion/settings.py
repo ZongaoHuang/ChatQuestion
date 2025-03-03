@@ -144,7 +144,7 @@ ARK_BASE_URL1 = 'https://api.chatanywhere.tech/v1'
 
 # 添加报告存储配置
 
-MEDIA_ROOT = os.path.join(os.path.expanduser('E:/Study/Code/Project/ChatQuestion/backend/ChatQuestion'), 'reports')
+MEDIA_ROOT = os.path.join(os.path.expanduser('~/project/ChatQuestion/backend/ChatQuestion'), 'reports')
 MEDIA_URL = '/reports/'
 
 # 允许文件访问
