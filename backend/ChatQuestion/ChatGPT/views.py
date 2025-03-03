@@ -1,7 +1,8 @@
+import zipfile
 from django.shortcuts import render
 
 # Create your views here.
-from django.http import HttpResponse
+from django.http import HttpResponse, StreamingHttpResponse
 
 
 def index(request):
@@ -218,3 +219,63 @@ def save_report(request):
             return JsonResponse({"error": str(e)}, status=500)
     
     return JsonResponse({"error": "仅支持POST方法"}, status=405)
+
+from django.http import FileResponse
+from django.conf import settings
+import os
+
+def report_list(request):
+    """获取全部报告列表"""
+    try:
+        report_dir = settings.MEDIA_ROOT
+        
+        all_files = [
+            f for f in os.listdir(report_dir) 
+            if f.endswith('.json')
+        ]
+        
+        reports = []
+        for filename in all_files:
+            file_path = os.path.join(report_dir, filename)
+            stats = os.stat(file_path)
+            reports.append({
+                "name": filename,
+                "size": stats.st_size,
+                "created": stats.st_ctime
+            })
+            
+        return JsonResponse({"reports": reports})
+        
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+import tempfile  # 新增导入
+def download_all_reports(request):
+    """打包下载全部报告（修复版）"""
+    try:
+        report_dir = settings.MEDIA_ROOT
+        zip_filename = f"reports_{datetime.now().strftime('%Y%m%d%H%M%S')}.zip"
+
+        def file_generator():
+            # 使用临时文件缓冲
+            with tempfile.SpooledTemporaryFile() as tmp:
+                with zipfile.ZipFile(tmp, 'w') as zipf:
+                    for filename in os.listdir(report_dir):
+                        if not filename.endswith('.json') or '/' in filename:
+                            continue
+                        file_path = os.path.join(report_dir, filename)
+                        zipf.write(file_path, arcname=filename)
+                
+                # 重置文件指针并读取内容
+                tmp.seek(0)
+                while chunk := tmp.read(4096):
+                    yield chunk
+
+        response = StreamingHttpResponse(
+            file_generator(),
+            content_type='application/zip'
+        )
+        response['Content-Disposition'] = f'attachment; filename="{zip_filename}"'
+        return response
+        
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)

@@ -9,7 +9,6 @@ export default defineConfig({
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
     nav: [
-      
     ],
 
     sidebar: [
@@ -19,7 +18,8 @@ export default defineConfig({
           { text: '第一模块', link: '/first' },
           { text: '第二模块A', link: '/second_A' },
           { text: '第二模块A', link: '/second_A1' },
-          { text: '第三模块', link: '/third' }
+          { text: '第三模块', link: '/third' },
+          { text: '报告下载', link: '/report' }
         ]
       }
     ],

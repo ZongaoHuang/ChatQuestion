@@ -9,4 +9,6 @@ urlpatterns = [
     path('save_chat/', views.save_chat, name='save_chat'),
     path('save_report/', views.save_report, name='save_report'),
     path('get_chat_history/', views.get_chat_history, name='get_chat_history'),
+    path('report/', views.report_list, name='report-list'),
+    path('report/download-all/', views.download_all_reports, name='download-all'),
 ]

@@ -197,7 +197,9 @@ onUnmounted(stopTimer);
               剩余时间: {{ Math.floor(timeLeft / 60) }}分{{ timeLeft % 60 }}秒
             </div>
             <br>
-            首先，请您先构思出若干条初步的创意点子。这一阶段的想法生成时间为10分钟，10分钟内你可以与上方的GPT插件进行互动，请将您的初步创意点子写入到文本框中。
+            首先，请您先构思出若干条初步的创意点子。这一阶段的想法生成时间为10分钟，请将您的初步创意点子写入到文本框中。
+            
+            <strong>在这一阶段您可以与本页面提供的 “ChatGPT” 工具进行互动以获得帮助。</strong>
             <textarea
             :value="userInput1"
             @input="input2"
@@ -229,6 +231,7 @@ onUnmounted(stopTimer);
             </div>
             <br>
             在创意细化阶段，ChatGPT工具将会消失，请您对前一个阶段生成的初步创意和想法进行筛选、细化与完善。这一阶段的方案完善时间为10分钟，10分钟内，请将最终创意方案填写入到该文本框中。
+            <strong>请注意：在这一过程中请不要使用任何搜索引擎和生成式AI等工具。</strong>
             <textarea
             :value="userInput2"
             @input="input3"

@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
-
+import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-v&9&i^llaw@oi91b=55$eke7=6orchw4+&t#afxpd3875!5u#v
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -121,7 +121,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = 'static/'
-
+STATIC_ROOT = os.path.join(BASE_DIR, 'E:/Study/Code/Project/ChatQuestion/backend/ChatQuestion/statics')  # 新增收集静态文件目录
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
@@ -141,3 +141,11 @@ ARK_BASE_URL = 'https://ark.cn-beijing.volces.com/api/v3'
 ARK_API_KEY1 = 'sk-6JPu7gavjS5l81o3GZffq8SdUbyzGW401tPGKw68i8C8ClFD'
 # 如果使用 OpenAI SDK 方式调用，则还需配置 base_url
 ARK_BASE_URL1 = 'https://api.chatanywhere.tech/v1'
+
+# 添加报告存储配置
+
+MEDIA_ROOT = os.path.join(os.path.expanduser('E:/Study/Code/Project/ChatQuestion/backend/ChatQuestion'), 'reports')
+MEDIA_URL = '/reports/'
+
+# 允许文件访问
+STATICFILES_DIRS = [MEDIA_ROOT]
