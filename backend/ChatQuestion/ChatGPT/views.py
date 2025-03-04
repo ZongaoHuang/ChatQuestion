@@ -1,3 +1,4 @@
+import uuid
 import zipfile
 from django.shortcuts import render
 
@@ -40,24 +41,18 @@ def create_user(request):
 
 @csrf_exempt  # 示例中关闭 CSRF 校验（生产环境请注意安全配置）
 def chat_view(request):
-    """
-    接收 POST 请求，提取请求体中的 'words' 参数，
-    调用方舟平台模型服务后将生成的回答作为 JSON 响应返回。
-    """
-    if request.method != 'POST':
-        return JsonResponse({'error': '只支持 POST 方法'}, status=405)
-    
-    try:
+    if request.method == 'POST':
         data = json.loads(request.body)
-        prompt = data.get('words', '')
-    except Exception:
-        return JsonResponse({'error': '请求体不是合法的 JSON'}, status=400)
-    
-    if not prompt:
-        return JsonResponse({'error': '缺少参数 words'}, status=400)
-    
-    answer = ark_chat(prompt)
-    return JsonResponse({'response': answer})
+        user_id = data.get('user_id')
+        prompt = data.get('prompt')
+        session_id = data.get('session_id', str(uuid.uuid4())[:8])  # 生成简短会话ID
+        
+        # 验证用户存在
+        if not User.objects.filter(user_id=user_id).exists():
+            return JsonResponse({'error': '用户不存在'}, status=400)
+            
+        response = ark_chat(prompt, user_id, session_id)
+        return JsonResponse({'response': response})
 
 # 保存聊天记录
 # 修改保存聊天记录接口
@@ -68,7 +63,7 @@ def save_chat(request):
             data = json.loads(request.body)
             user_id = data.get("user_id")
             messages = data.get("messages")
-            
+            session_id = data.get("session_id", "default")
             if not user_id or not messages:
                 return JsonResponse({"error": "Missing required parameters"}, status=400)
 
@@ -80,6 +75,7 @@ def save_chat(request):
                 if msg.get("is_user"):
                     chat_records.append(ChatHistory(
                         user=user,
+                        session_id=session_id,  # 这里接收前端传来的session_id
                         chat_input=msg.get("content", ""),
                         gpt_response="",  # 用户消息清空响应字段
                         is_user=True

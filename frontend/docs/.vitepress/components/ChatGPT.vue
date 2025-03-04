@@ -5,6 +5,7 @@ import { useRouter } from 'vitepress'
 import type { ChatMessage } from '../utils/openai.ts'; // 单独导入类型
 // 添加 messages 声明
 const messages = ref<ChatMessage[]>([])
+const sessionID = ref<string>(Date.now().toString())
 // 在setup部分添加路由
 const router = useRouter()
 const props = defineProps({
@@ -109,22 +110,24 @@ const stopTimer = () => {
 const send = async () => {
   if (!chatInput.value.trim()) return;
   
-  const userMessage = {
+  const userMessage: ChatMessage = {
     content: chatInput.value,
     isUser: true,
-    timestamp: Date.now()
+    timestamp: Date.now(),
+    sessionID: sessionID.value  // 添加会话ID
   };
   
   messages.value.push(userMessage);
   
   try {
-    const response = await generateChat(chatInput.value, props.userID);
+    const response = await generateChat(chatInput.value, props.userID, sessionID.value);
     messages.value.push(response);
   } catch (error) {
     messages.value.push({
       content: '请求失败，请稍后重试',
       isUser: false,
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      sessionID: sessionID.value  // 错误消息也保持会话ID
     });
   }
   
@@ -209,7 +212,7 @@ onUnmounted(stopTimer);
 
             <div class="toolbar">
                 <span class="letters">{{ countNonWhitespaceChars(userInput1) }}</span>
-                <button @click="nextStage" class="next" v-if="stage === 1">进入创意细化阶段</button>
+                <button @click="nextStage" class="next" v-if="stage === 1">创意产生阶段完成后，请点击此处进入创意细化阶段</button>
             </div>  
         </div>
         
@@ -404,6 +407,10 @@ button {
 }
 button.send {
     color: var(--vp-c-text-inverse-1);
+}
+button.next{
+    color: var(--vp-c-text-inverse-1);
+    background-color:#00a0e8
 }
 button.commit {
     color: var(--vp-c-text-inverse-1);

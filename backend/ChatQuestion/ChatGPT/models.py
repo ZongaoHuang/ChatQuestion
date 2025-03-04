@@ -2,7 +2,7 @@ from django.db import models
 from django.utils import timezone
 
 class User(models.Model):
-    user_id = models.CharField(max_length=255, unique=True)
+    user_id = models.CharField(max_length=255, unique=True) #  手机号后四位
     created_at = models.DateTimeField(default=timezone.now)  # 使用当前中国时间
     report_stage_1_link = models.URLField(blank=True, null=True)  # 阶段 1 报告链接
     report_stage_2_link = models.URLField(blank=True, null=True)  # 阶段 2 报告链接
@@ -16,6 +16,8 @@ class ChatHistory(models.Model):
     gpt_response = models.TextField(blank=True)
     is_user = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
+    session_id = models.CharField(max_length=32, default='default')  # 新增会话ID
+    sequence = models.IntegerField(default=0)  # 新增消息顺序
 
     def save(self, *args, **kwargs):
         # 自动清理无效数据
@@ -24,6 +26,9 @@ class ChatHistory(models.Model):
         else:
             self.chat_input = ""    # AI消息清空输入字段
         super().save(*args, **kwargs)
+    
+    class Meta:
+        ordering = ['sequence']  # 确保按顺序获取
 
 class Report(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)

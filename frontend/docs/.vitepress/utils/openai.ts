@@ -4,11 +4,12 @@ export interface ChatMessage {
     content: string
     isUser: boolean
     timestamp: number
+    sessionID: string  // 新增会话ID字段
 }
   
 // const baseURL = '/ChatGPT/'; // Removed baseURL to simplify, using relative paths directly
 // 或者 const baseURL = 'http://localhost:8000';
-const axiosService = axios.create({ /* baseURL */ }); // baseURL removed from here
+
 
 export const DEFAULT_CHAT = '👨‍🎓Human:你叫什么名字？\n🤖ChatGPT:我叫ChatGPT，我是一个聊天机器人。\n👨‍🎓Human:';
 
@@ -39,51 +40,54 @@ export const TITLE: string = `👨‍🎓Human:
 
 
   
-export const generateChat = async (message: string, userID: string): Promise<ChatMessage> => {
-// const url = '/api/ChatGPT/chat/';
-const url = '/api/ChatGPT/chat/'; // Corrected URL to be relative to proxy, and removed extra ChatGPT from path
+export const generateChat = async (
+    message: string, 
+    userID: string,
+    sessionID: string = 'default'
+): Promise<ChatMessage> => {
+    try {
+        const res = await axios.post('/api/ChatGPT/chat/', {
+            user_id: userID,
+            prompt: message,
+            session_id: sessionID
+        });
 
-try {
-    const res = await axiosService({
-    method: 'post',
-    url,
-    data: { 
-        words: message,
-        user_id: userID
+        if (res?.data?.response) {
+            // 保存时包含 sessionID
+            const newMessage: ChatMessage = {
+                content: message,
+                isUser: true,
+                timestamp: Date.now(),
+                sessionID: sessionID
+            };
+            
+            const botMessage: ChatMessage = {
+                content: res.data.response,
+                isUser: false,
+                timestamp: Date.now(),
+                sessionID: sessionID
+            };
+
+            await saveChatHistory(userID, [newMessage, botMessage]);
+            
+            return botMessage;
+        }
+        
+        return {
+            content: '请求失败，请重试',
+            isUser: false,
+            timestamp: Date.now(),
+            sessionID: sessionID
+        };
+    } catch (error) {
+        console.error('Error generating chat:', error);
+        return {
+            content: '请求异常，请检查网络',
+            isUser: false,
+            timestamp: Date.now(),
+            sessionID: sessionID
+        };
     }
-    });
-
-    if (res?.data?.response) {
-    await saveChatHistory(userID, [{
-        content: message,
-        isUser: true,
-        timestamp: Date.now()
-    }, {
-        content: res.data.response,
-        isUser: false,
-        timestamp: Date.now()
-    }]);
-    
-    return {
-        content: res.data.response,
-        isUser: false,
-        timestamp: Date.now()
-    };
-    }
-
-    return {
-    content: '请求失败，请重试',
-    isUser: false,
-    timestamp: Date.now()
-    };
-} catch (error) {
-    console.error('Error generating chat:', error);
-    return {
-    content: '请求异常，请检查网络',
-    isUser: false,
-    timestamp: Date.now()
-    };
-}
 };
 
 export const saveChatHistory = async (userID: string, messages: ChatMessage[]) => {
@@ -93,7 +97,8 @@ try {
     messages: messages.map(msg => ({
         content: msg.content,
         is_user: msg.isUser,
-        timestamp: msg.timestamp
+        timestamp: msg.timestamp,
+        session_id: msg.sessionID  // 传递会话ID
     }))
     });
 } catch (error) {

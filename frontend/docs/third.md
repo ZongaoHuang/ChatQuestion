@@ -9,8 +9,8 @@ next: false
 
 恭喜您，实验已经进入尾声，请您点击下方问卷链接，完成第三模块的问答内容。完成后，请您回到本页面。
 
-::: info
-[小问卷](https://www.credamo.com/s/nMzqquano/  )
+::: danger
+[小问卷](https://www.credamo.com/s/QbMNZvano/  )
 
 :::
 
